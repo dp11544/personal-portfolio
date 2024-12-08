@@ -665,3 +665,61 @@ a::after {
 a:hover::after {
   width: 100%;
 }
+/* General styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+header {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+}
+
+section {
+    padding: 2rem;
+    text-align: center;
+}
+
+/* Resume section */
+#resume-section {
+    background-color: #f4f4f4;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 2rem;
+    margin: 2rem auto;
+    width: 90%;
+    max-width: 800px;
+}
+
+.resume-container {
+    position: relative;
+}
+
+.resume-img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.download-btn {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.download-btn:hover {
+    background-color: #0056b3;
+}
+
