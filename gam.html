@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bubble Shot Game</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(45deg, #ff9a9e, #fad0c4, #fbc2eb);
+    }
+    canvas {
+      border: 5px solid #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      background: #222;
+    }
+    .score-card {
+      margin: 10px 0;
+      font-size: 1.5em;
+      color: #ffffff;
+      text-align: center;
+      font-weight: bold;
+    }
+    .game-over {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 20px 40px;
+      border-radius: 15px;
+      text-align: center;
+      font-size: 1.5em;
+    }
+    .controls {
+      margin: 10px 0;
+      text-align: center;
+    }
+    .controls button {
+      background: linear-gradient(45deg, #43e97b, #38f9d7);
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 1.2em;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .controls button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    footer {
+      margin-top: 10px;
+      font-size: 1.2em;
+      font-family: 'Lucida Handwriting', cursive;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="score-card">
+    Score: <span id="current-score">0</span> | High Score: <span id="high-score">0</span>
+  </div>
+  <canvas id="bubbleCanvas" width="800" height="600"></canvas>
+  <div class="controls">
+    <button onclick="startGame()">Start Game</button>
+    <button onclick="resetGame()">Reset Game</button>
+  </div>
+  <div class="game-over" id="game-over">
+    Game Over! <br>
+    Final Score: <span id="final-score">0</span> <br>
+    <button onclick="resetGame()">Play Again</button>
+  </div>
+  <footer>Designed by Prasad</footer>
+
+  <script>
+    const canvas = document.getElementById("bubbleCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let bubbles = [];
+    let score = 0;
+    let highScore = localStorage.getItem("highScore") || 0;
+    let animationFrame;
+    let gameStarted = false;
+    let gameTimer;
+
+    document.getElementById("high-score").textContent = highScore;
+
+    // Generate random color
+    function randomColor() {
+      const letters = '0123456789ABCDEF';
+      let color = '#';
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    }
+
+    // Bubble class
+    class Bubble {
+      constructor(x, y, radius, color) {
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.color = color;
+        this.speed = Math.random() * 1.5 + 0.5; // Medium speed
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.closePath();
+      }
+      update() {
+        this.y -= this.speed;
+      }
+    }
+
+    // Spawn bubbles
+    function spawnBubble() {
+      const x = Math.random() * canvas.width;
+      const y = canvas.height;
+      const radius = Math.random() * 20 + 10;
+      const color = randomColor();
+      bubbles.push(new Bubble(x, y, radius, color));
+    }
+
+    // Check for bubble click
+    function checkBubbleClick(event) {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
+
+      bubbles.forEach((bubble, index) => {
+        const distance = Math.sqrt((mouseX - bubble.x) ** 2 + (mouseY - bubble.y) ** 2);
+        if (distance < bubble.radius) {
+          bubbles.splice(index, 1);
+          score++;
+          document.getElementById("current-score").textContent = score;
+
+          if (score > highScore) {
+            highScore = score;
+            document.getElementById("high-score").textContent = highScore;
+            localStorage.setItem("highScore", highScore);
+          }
+        }
+      });
+    }
+
+    // Draw and update bubbles
+    function updateCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      bubbles.forEach((bubble, index) => {
+        bubble.update();
+        bubble.draw();
+        if (bubble.y + bubble.radius < 0) {
+          bubbles.splice(index, 1);
+        }
+      });
+      animationFrame = requestAnimationFrame(updateCanvas);
+    }
+
+    // Start game
+    function startGame() {
+      if (!gameStarted) {
+        gameStarted = true;
+        score = 0;
+        document.getElementById("current-score").textContent = score;
+        bubbles = [];
+        setInterval(spawnBubble, 1500); // Spawn bubbles every 1.5 seconds
+        updateCanvas();
+        canvas.addEventListener("click", checkBubbleClick);
+        gameTimer = setTimeout(endGame, 30000); // End game after 30 seconds
+      }
+    }
+
+    // End game
+    function endGame() {
+      cancelAnimationFrame(animationFrame);
+      gameStarted = false;
+      document.getElementById("game-over").style.display = "block";
+      document.getElementById("final-score").textContent = score;
+    }
+
+    // Reset game
+    function resetGame() {
+      cancelAnimationFrame(animationFrame);
+      clearTimeout(gameTimer);
+      gameStarted = false;
+      score = 0;
+      bubbles = [];
+      document.getElementById("current-score").textContent = score;
+      document.getElementById("game-over").style.display = "none";
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "white";
+      ctx.font = "20px Arial";
+      ctx.fillText("Game Reset. Press Start!", canvas.width / 2 - 100, canvas.height / 2);
+    }
+  </script>
+</body>
+</html>
